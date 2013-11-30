@@ -1,10 +1,15 @@
 @CHARSET "UTF-8";
 
 .icon {
-	fill : steelblue;
-	stroke : black;
+	fill : url(#gradient);
+	stroke : #abf2ff;
 	stroke-width : 1;
+	opacity : 1;
+	filter : url(#dropshadow);
 }
+
+.Stop1 { stop-color: #00a2ff; }
+.Stop2 { stop-color: #005383; }
 
 .icon_selected {
 	fill : transparent;
@@ -12,28 +17,48 @@
 }
 
 
+.bg {
+	/*background: -webkit-linear-gradient(180deg, black, gray); 
+	background: -o-linear-gradient(180deg, black, blue); 
+	background: -moz-linear-gradient(180deg, red, blue); 
+	background : linear-gradient(180deg, #6a81a0, #5b6c87,#373b4c);*/
+	background : #232a36;
+	
+}
+
 .pin {
-	stroke :#778899 ;
-	fill : #B0C4DE;
-	stroke-width :5;
+	stroke :#B3B3B3 ;
+	fill : #2E3847;
+	stroke-width :3;
 	
 }
 
 .pintext {
-	fill : black;
+	fill : white;
 	text-anchor : middle;
-	font-size : 16px;
-	font-family : sans-serif;
+	vertical-aling:midde;
+	font-size : 12pt;
+	font-family : Arial;
+}
+
+.userlink {
+	stroke : orange;
 }
 
 #nametag {
-	position : absolute;
+	position : relative;
+	display : table-cell;
 	top : 10px;
 	left : 60%;
-	background : gray;
+	background : linear-gradient(180deg, #6A727D, #2E3847);;
+	font-family : Arial;
+	font-size : 16pt;
+	color : white;
 	width : 100px;
 	height : 30px;
-	border : 2px solid black;
+	border : 2px solid #B3B3B3;
 	border-radius : 10px;
+	text-align : center;
+	vertical-align : middle;
 	opacity : 0;
 }

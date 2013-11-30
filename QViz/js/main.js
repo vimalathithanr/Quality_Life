@@ -6,6 +6,9 @@ var SVGArea;
 var drag;
 var line;
 
+var userscale;
+var linkscale;
+
 var gSelectedUser;
 var gPinRadius;
 
@@ -59,17 +62,71 @@ function Init()
 	GetUserDetails();
 	GetUserRelations();
 	
+	InitScales();
+	
 	SVGArea = svgOverlay = d3.select("body")
 							.append("svg")
 							.attr("id","mainSVG")
 							.attr("width",screen.width)
 							.attr("height",screen.height);
 	
+	InitFilters();
 	AssignInitPositions();
 	DrawUserObjects();
 	
 	//RandomPerturb();
 
+}
+
+
+//http://4waisenkinder.de/blog/2013/09/28/using-gradient-and-shadows-with-d3-dot-js/
+function InitFilters()
+{
+	var defs = SVGArea.append( 'defs' );
+
+	
+	var filter = defs.append( 'filter' )
+	                 .attr( 'id', 'dropshadow' )
+
+	
+	filter.append( 'feGaussianBlur' )
+	      .attr( 'in', 'SourceAlpha' )
+	      .attr( 'stdDeviation', 2 )
+	      .attr( 'result', 'blur' );
+
+	
+	filter.append( 'feOffset' )
+	      .attr( 'in', 'blur' )
+	      .attr( 'dx', 2 )
+	      .attr( 'dy', 2 )
+	      .attr( 'result', 'offsetBlur' );
+
+	
+	var feMerge = filter.append( 'feMerge' );
+
+	
+	feMerge.append( 'feMergeNode' )
+	       .attr( 'in", "offsetBlur' )
+
+	
+	feMerge.append( 'feMergeNode' )
+	       .attr( 'in', 'SourceGraphic' );
+	
+	
+	filter = defs.append('linearGradient')
+				.attr('id', 'gradient')
+				.attr('x1','0')
+				.attr('y1', '0')
+				.attr('x2','0')
+				.attr('y2','1');
+	
+	filter.append('stop')
+			.attr('class','Stop1')
+			.attr('offset','0%');
+	
+	filter.append('stop')
+			.attr('class','Stop2')
+			.attr('offset','100%');
 }
 
 
@@ -101,7 +158,6 @@ function GetUserDetails()
 	xmlhttp.open("POST","php/UserDetails.php",false);
 	xmlhttp.send();
 }
-
 
 
 function GetUserRelations()
@@ -149,6 +205,40 @@ function GetUserRelations()
 
 
 
+function InitScales()
+{
+	var min=9999, max=0, tmp = 0;
+	
+	for(i=0;i<users.length;i++)
+	{
+		tmp = parseFloat(users[i].duration);
+		if(tmp > max)
+			max = tmp;
+		if(tmp < min)
+			min = tmp;
+	}
+	
+	userscale = d3.scale.linear()
+					.domain([min,max])
+					.range([50, 80]);
+	
+	min=9999, max=0, tmp = 0;
+	
+	for(i=0;i<relations.length;i++)
+	{
+		tmp = parseFloat(relations[i].duration);
+		if(tmp > max)
+			max = tmp;
+		if(tmp < min)
+			min = tmp;
+	}
+	
+	linkscale = d3.scale.linear()
+					.domain([min,max])
+					.range([1,20]);
+}
+
+
 function AssignInitPositions()
 {
 	var phi = 2*Math.PI/users.length;
@@ -167,24 +257,6 @@ function AssignInitPositions()
 							.enter()
 							.append("path")
 							.attr("id",function(d){ return d.id; });
-
-
-	/*UserLinks.attr("d",function(d){
-
-		points = [];
-	
-		for(i=0;i<users.length;i++)
-		{
-			if(d.from == users[i].id)
-				from = {"x":users[i].x,"y":users[i].y};
-		}
-	
-		points.push(from);
-		points.push(from);
-	
-		return line(points);
-	});*/
-
 	
 }
 
@@ -210,14 +282,16 @@ function DrawUserObjects()
 	UserIcons.attr("cx",screen.x)
 			 .attr("cy",screen.y)
 			 .attr("r",gPinRadius)
+			 //.attr("filter", "url(#dropshadow)") 
 			 .attr("class","icon");
 			 
+			 
 
-	UserImages.attr("xlink:href", "images/user.png")
+	UserImages.attr("xlink:href", "images/user2.png")
 				.attr("width","1")
 				.attr("height","1")
-				.attr("x",function(d){return d.x-15;})
-				.attr("y", function(d){return d.y-15;});
+				.attr("x",function(d){return d.x-25;})
+				.attr("y", function(d){return d.y-25;});
 				
 
 	
@@ -232,14 +306,14 @@ function DrawUserObjects()
 			.attr("cx",function(d){return d.x;})
 			.attr("cy", function(d){return d.y;})
 			.attr("r", function(d){
-				return max_rad*parseInt(d.duration)/total_duration;
+				return userscale(d.duration);
 			})
 			.duration(1000)
 			.each("end",function(d){
 				DrawUserLinks();
 				UserImages.transition()
-				   .attr("width","30")
-				   .attr("height","30");
+				   .attr("width","50")
+				   .attr("height","50");
 			});
 		
 }
@@ -292,8 +366,10 @@ function DrawUserLinks()
 		
 
 	
-	UserLinks.attr("stroke","black")
-			.attr("stroke-width","2");
+	UserLinks.attr("stroke","#FF6600")
+			.attr("stroke-width", function(d){
+				return linkscale(d.duration);
+			});
 }
 
 
@@ -302,12 +378,12 @@ function DrawUserLinks()
 
 function UpdateLinks(svgroup)
 {	
-	console.log(svgroup);
 	var uid = d3.select(svgroup).attr("id");
 	var offx = d3.transform(d3.select(svgroup).attr("transform")).translate[0];
 	var offy = d3.transform(d3.select(svgroup).attr("transform")).translate[1];
 	var x = d3.select(svgroup).select(".icon").attr("cx");
 	var y = d3.select(svgroup).select(".icon").attr("cy");
+	var r = d3.select(svgroup).select(".icon").attr("r");
 	
 	var path, from, to, points, tmp, flag, oldx, oldy;
 	
@@ -362,6 +438,25 @@ function UpdateLinks(svgroup)
 		}
 					
 	}
+	
+	if(uid != gSelectedUser)
+		return;
+	
+	var ntag = d3.select("#nametag");
+	var nwidth = parseFloat(ntag.style("width").replace("px",""));
+	var nheight = parseFloat(ntag.style("height").replace("px",""));
+	
+	var top, left;
+	
+	r = parseFloat(r);
+	left = x - nwidth/2;
+	top = y - (r+nheight);
+	
+	left = left + "px";
+	top  = top + "px";
+	
+	ntag.style("top",top)
+		.style("left",left);
 
 }
 
@@ -375,7 +470,9 @@ function SelectUser(uid)
 	if(d3.select(uid).attr("id") == gSelectedUser)
 		return;
 		
-	d3.select("#pinGroup").remove();
+	d3.select("#pinGroup").transition()
+		.style("opacity","0")
+		.remove();
 	
 	var usergroup = d3.select(uid);
 	var icon = usergroup.select(".icon");
@@ -392,15 +489,15 @@ function SelectUser(uid)
 				.style("fill", function(d){
 					return d3.select(this).style("stroke");
 					})
-				.style("stroke", "black");
+				.style("stroke", "#abf2ff");
 		}
 	}
 	
 	
 	icon.transition()
  		.style("stroke",icon.style("fill"))
- 		.style("stroke-width",0.2*icon.attr("r"))
- 		.style("fill","white");
+ 		.style("stroke-width",0.3*icon.attr("r"))
+ 		.style("fill","transparent");
 	
 	gSelectedUser = d3.select(uid).attr("id");
 	
@@ -427,7 +524,7 @@ function SelectUser(uid)
 	
 	
 	pin.transition()
-		.attr("r",gPinRadius);
+		.attr("r",1.5*gPinRadius);
 
 	
 	var pintext = pinGroup.append("text");
@@ -443,16 +540,36 @@ function SelectUser(uid)
 				}
 			});
 	
+	cx = parseFloat(icon.attr("cx"));
+	cy = parseFloat(icon.attr("cy"));
+	r = parseFloat(icon.attr("r"));
+	
+	
+	var offx = d3.transform(d3.select(uid).attr("transform")).translate[0];
+	var offy = d3.transform(d3.select(uid).attr("transform")).translate[1];
+	
+	offx = parseFloat(offx);
+	offy = parseFloat(offy);
+	
+	cx = cx + offx;
+	cy = cy + offy;
+	
 	var nametag = d3.select("#nametag");
 	
 	var nwidth = parseFloat(nametag.style("width").replace("px",""));
 	var nheight = parseFloat(nametag.style("height").replace("px",""));
+	var name = "";
 	
-	console.log(nwidth,nheight)
+	for(i=0;i<users.length;i++)
+	{
+		if(users[i].id == uid.replace("#",""))
+			name = users[i].name;
+	}
 	
-	nametag.style("left",cx - (nwidth/2) + "px")
-			.style("top", cy + (r+nheight)+"px")
-			.style("opacity","1");
+	nametag.style("left",cx - nwidth/2 + "px")
+			.style("top", cy -(r+nheight) + "px")
+			.style("opacity","1")
+			.text(name);
 			
 }
 
