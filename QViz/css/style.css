@@ -25,3 +25,15 @@
 	font-size : 16px;
 	font-family : sans-serif;
 }
+
+#nametag {
+	position : absolute;
+	top : 10px;
+	left : 60%;
+	background : gray;
+	width : 100px;
+	height : 30px;
+	border : 2px solid black;
+	border-radius : 10px;
+	opacity : 0;
+}

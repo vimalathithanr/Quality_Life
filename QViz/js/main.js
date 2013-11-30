@@ -2,7 +2,10 @@ var users;
 var relations;
 var screen;
 var SVGArea;
+
 var drag;
+var line;
+
 var gSelectedUser;
 var gPinRadius;
 
@@ -29,6 +32,11 @@ function Init()
 	
 	gPinRadius = 20;
 	
+	line = d3.svg.line()
+			.x(function(d){return d.x;})
+			.y(function(d){return d.y;})
+			.interpolate("linear");
+	
 	//http://stackoverflow.com/questions/15966256/how-to-set-the-origin-drag-origin-for-drag-behavior-in-d3-javascript-library
 	drag = d3.behavior.drag()
 			.origin(function(d){
@@ -43,6 +51,9 @@ function Init()
 					.attr("transform", function(d){
 						return "translate(" + [d3.event.x,d3.event.y] + ")";						
 					});
+				
+				UpdateLinks(this);
+							
 			});
 	
 	GetUserDetails();
@@ -54,11 +65,10 @@ function Init()
 							.attr("width",screen.width)
 							.attr("height",screen.height);
 	
-	
+	AssignInitPositions();
 	DrawUserObjects();
-	DrawUserLinks()
 	
-	RandomPerturb();
+	//RandomPerturb();
 
 }
 
@@ -113,7 +123,8 @@ function GetUserRelations()
 				
 				for(j=0;j<relations.length;j++)
 				{
-					if(data[i].UserID1 == relations[j].to)
+					if("u"+data[i].UserID1 == relations[j].to && 
+							"u"+data[i].UserID2 == relations[j].from)
 					{
 						ALREADY_EXISTS = true;
 						break;
@@ -122,8 +133,9 @@ function GetUserRelations()
 				
 				if(!ALREADY_EXISTS)
 				{
-
-					relations.push({"from":"u"+data[i].UserID1,
+					//console.log(data[i].UserID1,data[i].UserID2);
+					relations.push({"id":"p"+relations.length,
+							"from":"u"+data[i].UserID1,
 							"to":"u"+data[i].UserID2,
 							"duration":data[i].Duration});
 				}
@@ -134,6 +146,48 @@ function GetUserRelations()
 	xmlhttp.open("POST","php/UserRelations.php",false);
 	xmlhttp.send();
 }
+
+
+
+function AssignInitPositions()
+{
+	var phi = 2*Math.PI/users.length;
+	var sep_rad = 0.35*screen.height;				//separation radius
+	var points = [];
+	var from,to;
+	
+	for(i=0;i<users.length;i++)
+	{		
+		users[i].x = screen.x + sep_rad*Math.cos(i*phi);
+		users[i].y = screen.y + sep_rad*Math.sin(i*phi);
+	}
+	
+	var UserLinks = SVGArea.selectAll("path")
+							.data(relations)
+							.enter()
+							.append("path")
+							.attr("id",function(d){ return d.id; });
+
+
+	/*UserLinks.attr("d",function(d){
+
+		points = [];
+	
+		for(i=0;i<users.length;i++)
+		{
+			if(d.from == users[i].id)
+				from = {"x":users[i].x,"y":users[i].y};
+		}
+	
+		points.push(from);
+		points.push(from);
+	
+		return line(points);
+	});*/
+
+	
+}
+
 
 
 function DrawUserObjects()
@@ -151,9 +205,7 @@ function DrawUserObjects()
 	var UserIcons = UserGroup.append("circle");
 							
 	var UserImages = UserGroup.append("image");
-	
-	//var UserLinks = SVGArea.append("path");
-	
+		
 	
 	UserIcons.attr("cx",screen.x)
 			 .attr("cy",screen.y)
@@ -169,17 +221,12 @@ function DrawUserObjects()
 				
 
 	
-	var phi = 2*Math.PI/users.length;
-	var sep_rad = 0.35*screen.height;				//separation radius
 	var max_rad = screen.height*1.5/users.length;	//max usericon radius
 	var total_duration = 0;
 	
 	for(i=0;i<users.length;i++)
-	{		
-		users[i].x = screen.x + sep_rad*Math.cos(i*phi);
-		users[i].y = screen.y + sep_rad*Math.sin(i*phi);
 		total_duration += parseInt(users[i].duration);
-	}
+
 
 	UserIcons.transition()
 			.attr("cx",function(d){return d.x;})
@@ -187,65 +234,45 @@ function DrawUserObjects()
 			.attr("r", function(d){
 				return max_rad*parseInt(d.duration)/total_duration;
 			})
-			.duration(1000);
-	
-
-	UserImages.transition()
-			   .attr("width","30")
-			   .attr("height","30")
-			   .attr("x",function(d){return d.x-15;})
-			   .attr("y", function(d){return d.y-15;})
-			   .duration(1000);
-	
-	
-	
-	//UserLinks.transition()
-	/*UserLinks.transition()
-			.attr("d",function(d){
-				var x1 = d3.select("#"+d.from).attr("cx");
-				var y1 = d3.select("#"+d.from).attr("cy");
-				var x2 = d3.select("#"+d.to).attr("cx");
-				var y2 = d3.select("#"+d.to).attr("cy");
-			
-				for(i=0;i<users.length;i++)
-				{
-					if(users[i].id == d.from)
-					{
-						x1 = users[i].x;
-						y1 = users[i].y;
-					}
-					
-					if(users[i].id == d.to)
-					{
-						x2 = users[i].x;
-						y2 = users[i].y;
-					}
-				}
-					
-				return "M " + x1 + " " + y1 + " L " + x2 + " " +y2;
-		});*/
-	
+			.duration(1000)
+			.each("end",function(d){
+				DrawUserLinks();
+				UserImages.transition()
+				   .attr("width","30")
+				   .attr("height","30");
+			});
+		
 }
+
+
 
 
 function DrawUserLinks()
 {
 	
-	var UserLinks = SVGArea.selectAll("path")
-						.data(relations)
-						.enter()
-						.append("path");
-	
-	var line = d3.svg.line()
-					.x(function(d){return d.x;})
-					.y(function(d){return d.y;})
-					.interpolate("linear");
+	UserLinks = d3.selectAll("path");
 	
 	UserLinks.attr("d",function(d){
-		
-		var points = [];
-		var from,to;
-		
+
+		points = [];
+	
+		for(i=0;i<users.length;i++)
+		{
+			if(d.from == users[i].id)
+				from = {"x":users[i].x,"y":users[i].y};
+		}
+	
+		points.push(from);
+		points.push(from);
+	
+		return line(points);
+	});
+
+
+	UserLinks.transition().attr("d",function(d){
+
+		points = [];
+			
 		for(i=0;i<users.length;i++)
 		{
 			if(d.from == users[i].id)
@@ -253,19 +280,92 @@ function DrawUserLinks()
 			
 			if(d.to == users[i].id)
 				to = {"x":users[i].x,"y":users[i].y};
-			
 		}
 		
 		points.push(from);
 		points.push(to);
 		
-		console.log(points)
-		
+
 		return line(points);
-	});
+	})
+		.duration(1000);
+		
+
 	
-	UserLinks.attr("stroke","black");
+	UserLinks.attr("stroke","black")
+			.attr("stroke-width","2");
 }
+
+
+
+
+
+function UpdateLinks(svgroup)
+{	
+	console.log(svgroup);
+	var uid = d3.select(svgroup).attr("id");
+	var offx = d3.transform(d3.select(svgroup).attr("transform")).translate[0];
+	var offy = d3.transform(d3.select(svgroup).attr("transform")).translate[1];
+	var x = d3.select(svgroup).select(".icon").attr("cx");
+	var y = d3.select(svgroup).select(".icon").attr("cy");
+	
+	var path, from, to, points, tmp, flag, oldx, oldy;
+	
+	x = parseFloat(x) + parseFloat(offx);
+	y = parseFloat(y) + parseFloat(offy);
+	
+	
+	for(i=0;i<relations.length;i++)
+	{
+		flag = 0;
+		
+		if(uid == relations[i].from)
+		{			
+			path = d3.select("#p"+i);
+			tmp = d3.select("#"+relations[i].to);
+			from = {"x":x,"y":y};
+			flag = 1;
+		}
+		
+		if(uid == relations[i].to)
+		{			
+			path = d3.select("#p"+i);
+			tmp = d3.select("#"+relations[i].from);
+			to = {"x":x,"y":y};
+			flag = 2;
+		}
+		
+		if(flag > 0)
+		{
+			points = [];
+			
+			offx = d3.transform(tmp.attr("transform")).translate[0];
+			offy = d3.transform(tmp.attr("transform")).translate[1];
+			oldx = tmp.select(".icon").attr("cx");
+			oldy = tmp.select(".icon").attr("cy");
+			
+			oldx = parseFloat(oldx) + parseFloat(offx);
+			oldy = parseFloat(oldy) + parseFloat(offy);
+			
+			if(flag == 2)
+				from = {"x":oldx,"y":oldy};
+			else
+				to = {"x":oldx,"y":oldy};
+			
+			path.attr("d",function(d){
+			
+				points.push(from);
+				points.push(to);
+				
+				return line(points);
+			});
+		}
+					
+	}
+
+}
+
+
 
 
 function SelectUser(uid)
@@ -300,7 +400,7 @@ function SelectUser(uid)
 	icon.transition()
  		.style("stroke",icon.style("fill"))
  		.style("stroke-width",0.2*icon.attr("r"))
- 		.style("fill","transparent");
+ 		.style("fill","white");
 	
 	gSelectedUser = d3.select(uid).attr("id");
 	
@@ -342,7 +442,17 @@ function SelectUser(uid)
 						return users[i].duration;
 				}
 			});
-						
+	
+	var nametag = d3.select("#nametag");
+	
+	var nwidth = parseFloat(nametag.style("width").replace("px",""));
+	var nheight = parseFloat(nametag.style("height").replace("px",""));
+	
+	console.log(nwidth,nheight)
+	
+	nametag.style("left",cx - (nwidth/2) + "px")
+			.style("top", cy + (r+nheight)+"px")
+			.style("opacity","1");
 			
 }
 
@@ -352,8 +462,13 @@ function SelectUser(uid)
 function RandomPerturb()
 {
 	d3.select("#u52005629f3").transition()
-		.attr("transform", "translate(50,50)")
+		.attr("transform", function(d){
+			UpdateLinks(d3.select("#u52005629f3")[0][0]);	
+		return "translate(50,50)";})
 		.duration(10000);
+	
+	//console.log(d3.select("#u52005629f3")[0][0]);
+	//UpdateLinks(d3.select("#u52005629f3")[0][0]);
 }
 
 
