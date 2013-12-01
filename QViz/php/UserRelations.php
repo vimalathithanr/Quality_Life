@@ -6,8 +6,9 @@ $config = parse_ini_file("../config.ini");
 $host = $config['host'];
 $user = $config['user'];
 $pass = $config['pass'];
+$db = $config['db'];
 
-$con=mysqli_connect($host,$user,$pass,"QLife");
+$con=mysqli_connect($host,$user,$pass,$db);
 
 if (mysqli_connect_errno())
 {

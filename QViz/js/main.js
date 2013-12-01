@@ -3,6 +3,8 @@ var relations;
 var screen;
 var SVGArea;
 
+var stars;
+
 var drag;
 var line;
 
@@ -27,6 +29,8 @@ function newXHR()
 function Init()
 {
 	screen = {
+			"max_width" : window.outerWidth,
+			"max_height" : window.outerHeight,
 			"width":window.innerWidth,
 			"height":window.innerHeight,
 			"x":window.innerWidth/2,
@@ -67,14 +71,15 @@ function Init()
 	SVGArea = svgOverlay = d3.select("body")
 							.append("svg")
 							.attr("id","mainSVG")
-							.attr("width",screen.width)
-							.attr("height",screen.height);
+							.attr("width",screen.max_width)
+							.attr("height",screen.max_height);
 	
 	InitFilters();
 	AssignInitPositions();
 	DrawUserObjects();
 	
 	//RandomPerturb();
+	RandomPoints();
 
 }
 
@@ -608,5 +613,18 @@ function RandomColor()
 }
 
 
-
+function RandomPoints()
+{
+	var x,y,r;
+	
+	for(i=0;i<100;i++)
+	{
+		x = Math.floor((Math.random()*1000)%screen.width);
+		y = Math.floor((Math.random()*1000)%screen.height);
+		r = Math.floor((Math.random()*10)%10);
+		
+		stars[i] = {"x":x,"y":y,"r":r};
+	}
+	
+}
 
