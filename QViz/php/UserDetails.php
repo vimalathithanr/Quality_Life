@@ -8,7 +8,11 @@ $user = $config['user'];
 $pass = $config['pass'];
 $db = $config['db'];
 
-$con=mysqli_connect($host,$user,$pass,$db);
+
+if($host == 'local')
+	$con=mysqli_connect('localhost','root','mysql','QLife');
+else
+	$con=mysqli_connect($host,$user,$pass,$db);
 
 if (mysqli_connect_errno())
 {

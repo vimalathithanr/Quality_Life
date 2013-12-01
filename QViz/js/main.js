@@ -12,6 +12,7 @@ var userscale;
 var linkscale;
 
 var gSelectedUser;
+var gSelectedRelation;
 var gPinRadius;
 
 var ALREADY_EXISTS = false;
@@ -29,8 +30,8 @@ function newXHR()
 function Init()
 {
 	screen = {
-			"max_width" : window.outerWidth,
-			"max_height" : window.outerHeight,
+			"max_width" : window.innerWidth,
+			"max_height" : window.innerHeight,
 			"width":window.innerWidth,
 			"height":window.innerHeight,
 			"x":window.innerWidth/2,
@@ -127,10 +128,26 @@ function InitFilters()
 	
 	filter.append('stop')
 			.attr('class','Stop1')
-			.attr('offset','0%');
+			.attr('offset','10%');
 	
 	filter.append('stop')
 			.attr('class','Stop2')
+			.attr('offset','100%');
+	
+	
+	filter = defs.append('linearGradient')
+			.attr('id', 'revgradient')
+			.attr('x1','0')
+			.attr('y1', '0')
+			.attr('x2','0')
+			.attr('y2','1');
+
+	filter.append('stop')
+			.attr('class','Stop2')
+			.attr('offset','10%');
+	
+	filter.append('stop')
+			.attr('class','Stop1')
 			.attr('offset','100%');
 }
 
@@ -261,7 +278,124 @@ function AssignInitPositions()
 							.data(relations)
 							.enter()
 							.append("path")
-							.attr("id",function(d){ return d.id; });
+							.attr("id",function(d){ return d.id; })
+							.on("click", function(d) {
+								ShowLineStrength(d);
+							});
+	
+}
+
+
+
+function GetMidPoint(relation)
+{
+	var from = d3.select("#"+relation.from);
+	var to = d3.select("#"+relation.to);
+	var duration = relation.duration;
+	
+	var x1 = parseFloat(from.select(".icon").attr("cx"));
+	var y1 = parseFloat(from.select(".icon").attr("cy"));
+	
+	var offx = parseFloat(d3.transform(from.attr("transform")).translate[0]);
+	var offy = parseFloat(d3.transform(from.attr("transform")).translate[1]);
+	
+	x1 = x1 + offx;
+	y1 = y1 + offy;
+	
+	var x2 = parseFloat(to.select(".icon").attr("cx"));
+	var y2 = parseFloat(to.select(".icon").attr("cy"));
+	
+	offx = parseFloat(d3.transform(to.attr("transform")).translate[0]);
+	offy = parseFloat(d3.transform(to.attr("transform")).translate[1]);
+	
+	x2 = x2 + offx;
+	y2 = y2 + offy;
+	
+	var mx = x1 + (x2 - x1)*0.5;
+	var my = y1 + (y2 - y1)*0.5;
+	
+	return {"x":mx,"y":my};
+}
+
+
+
+function ShowLineStrength(relation)
+{
+	
+	if(gSelectedUser)
+	{
+	
+		d3.select("#"+gSelectedUser)
+				.select(".icon")
+				.transition()
+				.style("stroke-width","1")
+				.style("fill", "url(#gradient)")
+				.style("stroke", "#abf2ff");
+		
+		gSelectedUser = null;
+	}
+	
+	d3.select("#nametag").transition()
+				.style("opacity",0);
+	
+	d3.select("#pinGroup").transition()
+				.style("opacity",0)
+				.remove();
+	
+	d3.select("#linepingroup").transition()
+					.style("opacity",0)
+					.remove();
+	
+	gSelectedRelation = relation.id;
+	
+	console.log(gSelectedRelation);
+	
+	var from = d3.select("#"+relation.from);
+	var to = d3.select("#"+relation.to);
+	var duration = relation.duration;
+	
+	var x1 = parseFloat(from.select(".icon").attr("cx"));
+	var y1 = parseFloat(from.select(".icon").attr("cy"));
+	
+	var offx = parseFloat(d3.transform(from.attr("transform")).translate[0]);
+	var offy = parseFloat(d3.transform(from.attr("transform")).translate[1]);
+	
+	x1 = x1 + offx;
+	y1 = y1 + offy;
+	
+	var x2 = parseFloat(to.select(".icon").attr("cx"));
+	var y2 = parseFloat(to.select(".icon").attr("cy"));
+	
+	offx = parseFloat(d3.transform(to.attr("transform")).translate[0]);
+	offy = parseFloat(d3.transform(to.attr("transform")).translate[1]);
+	
+	x2 = x2 + offx;
+	y2 = y2 + offy;
+	
+	var mx = x1 + (x2 - x1)*0.5;
+	var my = y1 + (y2 - y1)*0.5;
+	
+	var linepingroup = SVGArea.append("g")
+							.attr("id","linepingroup");
+	
+	var linepin = linepingroup.append("circle")
+						.attr("id", "linepin")
+						.attr("cx", mx)
+						.attr("cy", my)
+						.attr("r",0)
+						.attr("class","pin");
+	
+	var linepintext = linepingroup.append("text")
+							.attr("x",mx)
+							.attr("y",my+5)
+							.attr("class","pintext")
+							.text("");
+	
+	linepin.transition()
+			.attr("r",1.5*gPinRadius)
+			.each("end", function(){
+				linepintext.text(duration);
+			});
 	
 }
 
@@ -440,9 +574,23 @@ function UpdateLinks(svgroup)
 				
 				return line(points);
 			});
+			
+			if(path.attr("id") == gSelectedRelation)
+			{
+				mpoint = GetMidPoint(relations[i]);
+				
+				d3.select("#linepingroup").select(".pin")
+								.attr("cx", mpoint.x)
+								.attr("cy", mpoint.y);
+				
+				d3.select("#linepingroup").select(".pintext")
+								.attr("x", mpoint.x)
+								.attr("y", mpoint.y + 5);
+			}
 		}
 					
 	}
+	
 	
 	if(uid != gSelectedUser)
 		return;
@@ -472,6 +620,10 @@ function SelectUser(uid)
 {
 	uid = "#" + uid;
 	
+	d3.select("#linepingroup").transition()
+							.style("opacity",0)
+							.remove();
+	
 	if(d3.select(uid).attr("id") == gSelectedUser)
 		return;
 		
@@ -491,18 +643,16 @@ function SelectUser(uid)
 				.select(".icon")
 				.transition()
 				.style("stroke-width","1")
-				.style("fill", function(d){
-					return d3.select(this).style("stroke");
-					})
+				.style("fill", "url(#gradient)")
 				.style("stroke", "#abf2ff");
 		}
 	}
 	
 	
 	icon.transition()
- 		.style("stroke",icon.style("fill"))
+ 		.style("stroke", "url(#gradient)")//icon.style("fill"))
  		.style("stroke-width",0.3*icon.attr("r"))
- 		.style("fill","transparent");
+ 		.style("fill","url(#revgradient)");
 	
 	gSelectedUser = d3.select(uid).attr("id");
 	
@@ -536,7 +686,7 @@ function SelectUser(uid)
 	
 	pintext.attr("class","pintext")
 			.attr("x",cx)
-			.attr("y",cy)
+			.attr("y",cy + 5)
 			.text(function() {
 				for(i=0;i<users.length;i++)
 				{
@@ -617,6 +767,8 @@ function RandomPoints()
 {
 	var x,y,r;
 	
+	stars = [];
+	
 	for(i=0;i<100;i++)
 	{
 		x = Math.floor((Math.random()*1000)%screen.width);
@@ -625,6 +777,13 @@ function RandomPoints()
 		
 		stars[i] = {"x":x,"y":y,"r":r};
 	}
+	
+	var noisegroup = SVGArea.append("g").attr("id","noise");
+	
+	noisegroup.selectAll("circle")
+			.data(stars)
+			.enter()
+			.append("circle");
 	
 }
 

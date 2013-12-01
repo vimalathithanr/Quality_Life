@@ -11,6 +11,7 @@
 .Stop1 { stop-color: #00a2ff; }
 .Stop2 { stop-color: #005383; }
 
+
 .icon_selected {
 	fill : transparent;
 	stroke : steelblue;
@@ -36,7 +37,7 @@
 .pintext {
 	fill : white;
 	text-anchor : middle;
-	vertical-aling:midde;
+	vertical-align:midde;
 	font-size : 12pt;
 	font-family : Arial;
 }
@@ -50,7 +51,10 @@
 	display : table-cell;
 	top : 10px;
 	left : 60%;
-	background : linear-gradient(180deg, #6A727D, #2E3847);;
+	background: -webkit-linear-gradient(270deg, #6A727D, #2E3847); 
+	background: -o-linear-gradient(270deg, #6A727D, #2E3847); 
+	background: -moz-linear-gradient(270deg, #6A727D, #2E3847); 
+	background : linear-gradient(180deg, #6A727D, #2E3847);
 	font-family : Arial;
 	font-size : 16pt;
 	color : white;
@@ -62,3 +66,21 @@
 	vertical-align : middle;
 	opacity : 0;
 }
+
+#linetag {
+	position : absolute;
+	display : table-cell;
+	top : 10px;
+	left : 60%;
+	width : 100px;
+	height : 30px;
+	border-radius : 10px;
+	font-family : Arial;
+	font-size : 16pt;
+	text-align : center;
+	vertical-align : middle;
+	background : black;
+	color : white;
+	opacity : 0;
+}
+
