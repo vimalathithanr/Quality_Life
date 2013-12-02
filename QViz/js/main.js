@@ -426,11 +426,20 @@ function DrawUserObjects()
 			 
 			 
 
-	UserImages.attr("xlink:href", "images/user2.png")
+	UserImages.attr("xlink:href", function(d){
+					var url = "images/img";
+					
+					url = url + d.id.replace("u","") + ".png";
+					
+					if(FileExists(url))
+						return url;
+					else
+						return "images/user.png";
+				  })
 				.attr("width","1")
 				.attr("height","1")
-				.attr("x",function(d){return d.x-25;})
-				.attr("y", function(d){return d.y-25;});
+				.attr("x",function(d){return d.x-35;})
+				.attr("y", function(d){return d.y-35;});
 				
 
 	
@@ -451,12 +460,21 @@ function DrawUserObjects()
 			.each("end",function(d){
 				DrawUserLinks();
 				UserImages.transition()
-				   .attr("width","50")
-				   .attr("height","50");
+				   .attr("width","70")
+				   .attr("height","70");
 			});
 		
 }
 
+
+
+function FileExists(url)
+{
+	var http = new XMLHttpRequest();
+	http.open('HEAD', url, false);
+	http.send();
+	return http.status != 404;
+}
 
 
 
