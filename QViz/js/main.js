@@ -169,8 +169,9 @@ function GetUserDetails()
 			for(i=0;i<data.length;i++)
 			{
 				users[i] = {"id":"u"+data[i].UserID,
-							"name":data[i].UserName,
+							"name": (i+1) + ". " + data[i].UserName,
 							"duration":data[i].Duration,
+							"photo":data[i].Photo,
 							"x":screen.x,
 							"y":screen.y};
 			}		
@@ -348,11 +349,9 @@ function ShowLineStrength(relation)
 	
 	gSelectedRelation = relation.id;
 	
-	console.log(gSelectedRelation);
-	
-	var from = d3.select("#"+relation.from);
+	/*var from = d3.select("#"+relation.from);
 	var to = d3.select("#"+relation.to);
-	var duration = relation.duration;
+	
 	
 	var x1 = parseFloat(from.select(".icon").attr("cx"));
 	var y1 = parseFloat(from.select(".icon").attr("cy"));
@@ -373,28 +372,36 @@ function ShowLineStrength(relation)
 	y2 = y2 + offy;
 	
 	var mx = x1 + (x2 - x1)*0.5;
-	var my = y1 + (y2 - y1)*0.5;
+	var my = y1 + (y2 - y1)*0.5;*/
+	
+	var duration = relation.duration;
+	
+	var mp = GetMidPoint(relation);
 	
 	var linepingroup = SVGArea.append("g")
 							.attr("id","linepingroup");
 	
 	var linepin = linepingroup.append("circle")
 						.attr("id", "linepin")
-						.attr("cx", mx)
-						.attr("cy", my)
+						.attr("cx", mp.x)
+						.attr("cy", mp.y)
 						.attr("r",0)
 						.attr("class","pin");
 	
 	var linepintext = linepingroup.append("text")
-							.attr("x",mx)
-							.attr("y",my+5)
+							.attr("x",mp.x)
+							.attr("y",mp.y+5)
 							.attr("class","pintext")
 							.text("");
 	
 	linepin.transition()
 			.attr("r",1.5*gPinRadius)
 			.each("end", function(){
-				linepintext.text(duration);
+				var tmp = "";
+				duration = parseFloat(duration);
+				tmp = Math.floor(duration/60)+":"+Math.floor(duration%60);
+				
+				linepintext.text(tmp);
 			});
 	
 }
@@ -431,7 +438,7 @@ function DrawUserObjects()
 					
 					url = url + d.id.replace("u","") + ".png";
 					
-					if(FileExists(url))
+					if(d.photo == 'true')
 						return url;
 					else
 						return "images/user.png";
@@ -464,16 +471,6 @@ function DrawUserObjects()
 				   .attr("height","70");
 			});
 		
-}
-
-
-
-function FileExists(url)
-{
-	var http = new XMLHttpRequest();
-	http.open('HEAD', url, false);
-	http.send();
-	return http.status != 404;
 }
 
 
@@ -709,7 +706,15 @@ function SelectUser(uid)
 				for(i=0;i<users.length;i++)
 				{
 					if(users[i].id == gSelectedUser)
-						return users[i].duration;
+					{
+						var tmp = parseFloat(users[i].duration);
+						
+						var duration = Math.floor((tmp/60)) + ":" + (tmp%60);
+						
+						return duration;
+						
+					}
+						
 				}
 			});
 	
