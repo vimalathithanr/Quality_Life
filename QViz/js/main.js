@@ -258,7 +258,7 @@ function InitScales()
 	
 	linkscale = d3.scale.linear()
 					.domain([min,max])
-					.range([1,20]);
+					.range([5,40]);
 }
 
 
@@ -347,32 +347,12 @@ function ShowLineStrength(relation)
 					.style("opacity",0)
 					.remove();
 	
+	if(gSelectedRelation)
+		d3.select("#"+gSelectedRelation).style("stroke","#FF6600");
+	
 	gSelectedRelation = relation.id;
 	
-	/*var from = d3.select("#"+relation.from);
-	var to = d3.select("#"+relation.to);
-	
-	
-	var x1 = parseFloat(from.select(".icon").attr("cx"));
-	var y1 = parseFloat(from.select(".icon").attr("cy"));
-	
-	var offx = parseFloat(d3.transform(from.attr("transform")).translate[0]);
-	var offy = parseFloat(d3.transform(from.attr("transform")).translate[1]);
-	
-	x1 = x1 + offx;
-	y1 = y1 + offy;
-	
-	var x2 = parseFloat(to.select(".icon").attr("cx"));
-	var y2 = parseFloat(to.select(".icon").attr("cy"));
-	
-	offx = parseFloat(d3.transform(to.attr("transform")).translate[0]);
-	offy = parseFloat(d3.transform(to.attr("transform")).translate[1]);
-	
-	x2 = x2 + offx;
-	y2 = y2 + offy;
-	
-	var mx = x1 + (x2 - x1)*0.5;
-	var my = y1 + (y2 - y1)*0.5;*/
+	d3.select("#"+gSelectedRelation).style("stroke","#ffc000");
 	
 	var duration = relation.duration;
 	
