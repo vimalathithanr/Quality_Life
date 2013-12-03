@@ -26,6 +26,8 @@ $data = array();
 $result = mysqli_query($con,"select t1.UserID,t2.UserID,sum(least(t1.Duration,t2.Duration)) ". 
 							"from QUserDetails t1 left outer join QUserDetails t2 on ". 
 							"t1.ActivityID = t2.ActivityID and t1.UserID <> t2.UserID ".
+							"where t1.UserID in (select RFID for QUsers where Active=1) ".
+							"and t2.UserID in (select RFID for QUsers where Active=1) ".
 							"group by t1.UserID,t2.UserID ".
 							"order by t1.UserID,t1.ActivityID");
 
