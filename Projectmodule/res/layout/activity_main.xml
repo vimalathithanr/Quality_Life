@@ -12,7 +12,8 @@
         android:layout_alignParentTop="true"
         android:layout_marginLeft="72dp"
         android:layout_marginTop="80dp"
-        android:src="@drawable/ic_launcher" />
+        android:background="@null"
+        android:src="@drawable/adduser" />
 
     <ImageButton
         android:id="@+id/activityButton"
@@ -21,24 +22,8 @@
         android:layout_alignLeft="@+id/addButton"
         android:layout_below="@+id/addButton"
         android:layout_marginTop="78dp"
-        android:src="@drawable/ic_launcher" />
-
-    <ImageButton
-        android:id="@+id/outputButton"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_alignLeft="@+id/removeButton"
-        android:layout_alignTop="@+id/activityButton"
-        android:src="@drawable/ic_launcher" />
-
-    <ImageButton
-        android:id="@+id/removeButton"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_alignTop="@+id/addButton"
-        android:layout_marginLeft="24dp"
-        android:layout_toRightOf="@+id/addButton"
-        android:src="@drawable/ic_launcher" />
+        android:background="@null"
+        android:src="@drawable/logs" />
 
     <TextView
         android:id="@+id/textView1"
@@ -88,5 +73,26 @@
         android:layout_below="@+id/TextView02"
         android:layout_centerHorizontal="true"
         android:layout_marginTop="21dp"
-        android:src="@drawable/ic_launcher" />
+        android:background="@null"
+        android:src="@drawable/his" />
+
+    <ImageButton
+        android:id="@+id/removeButton"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_above="@+id/activityButton"
+        android:layout_marginLeft="19dp"
+        android:layout_toRightOf="@+id/TextView02"
+        android:background="@null"
+        android:src="@drawable/removeuser" />
+
+    <ImageButton
+        android:id="@+id/outputButton"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_above="@+id/TextView03"
+        android:layout_alignRight="@+id/TextView01"
+        android:background="@null"
+        android:src="@drawable/viz" />
+
 </RelativeLayout>

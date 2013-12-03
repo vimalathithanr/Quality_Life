@@ -17,6 +17,7 @@ public class WebActivity extends Activity {
 
 		webView = (WebView) findViewById(R.id.webview);
         webView.getSettings().setJavaScriptEnabled(true);
+        webView.getSettings().setAppCacheEnabled(false);
         webView.loadUrl("http://www.cs.indiana.edu/cgi-pub/vrajasek/Pervasive-Project/QViz/index.html");
 	}
 	
