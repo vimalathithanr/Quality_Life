@@ -49,15 +49,27 @@ function Init()
 	drag = d3.behavior.drag()
 			.origin(function(d){
 				var t = d3.select(this);
-				return {
-					x:t.attr("x") + d3.transform(t.attr("transform")).translate[0],
-					y:t.attr("y") + d3.transform(t.attr("transform")).translate[1]
-				};
+				var x = t.attr("x") + d3.transform(t.attr("transform")).translate[0];
+				var y = t.attr("y") + d3.transform(t.attr("transform")).translate[1];
+				
+				return {"x":x,"y":y};
 			})
 			.on("drag",function(d){
 				d3.select(this)
 					.attr("transform", function(d){
-						return "translate(" + [d3.event.x,d3.event.y] + ")";						
+						var x = d3.select(this).select(".icon").attr("cx");
+						var y = d3.select(this).select(".icon").attr("cy");
+						var r = d3.select(this).select(".icon").attr("r");
+						
+						x = parseFloat(x);
+						y = parseFloat(y);
+						r = parseFloat(r);
+						
+						var dx = Math.max(-1*(x-r-10),Math.min(d3.event.x,screen.width-(x+r+10)));
+						var dy = Math.max(-1*(y-r-10),Math.min(d3.event.y,screen.height-(y+r+20)));
+
+						console.log(x+r,d3.event.x);
+						return "translate(" + [dx,dy] + ")";						
 					});
 				
 				UpdateLinks(this);
@@ -265,7 +277,7 @@ function InitScales()
 function AssignInitPositions()
 {
 	var phi = 2*Math.PI/users.length;
-	var sep_rad = 0.35*screen.height;				//separation radius
+	var sep_rad = 0.30*screen.height;				//separation radius
 	var points = [];
 	var from,to;
 	
@@ -348,11 +360,11 @@ function ShowLineStrength(relation)
 					.remove();
 	
 	if(gSelectedRelation)
-		d3.select("#"+gSelectedRelation).style("stroke","#FF6600");
+		d3.select("#"+gSelectedRelation).style("stroke","#8bdaff");
 	
 	gSelectedRelation = relation.id;
 	
-	d3.select("#"+gSelectedRelation).style("stroke","#ffc000");
+	d3.select("#"+gSelectedRelation).style("stroke","#ffffff");
 	
 	var duration = relation.duration;
 	
@@ -500,7 +512,8 @@ function DrawUserLinks()
 		
 
 	
-	UserLinks.attr("stroke","#FF6600")
+	UserLinks.attr("stroke","#8bdaff")
+			//.attr("filter", "url(#dropshadow)") 
 			.attr("stroke-width", function(d){
 				return linkscale(d.duration);
 			});
@@ -638,7 +651,7 @@ function SelectUser(uid)
 				.transition()
 				.style("stroke-width","1")
 				.style("fill", "url(#gradient)")
-				.style("stroke", "#abf2ff");
+				.style("stroke", "#c36dff");
 		}
 	}
 	
