@@ -27,9 +27,9 @@ $data = array();
 							"from QUserDetails t1, QUsers t2 where ".
 							"t1.UserID = t2.RFID group by UserID order by 3 desc");
 */
-$result = mysqli_query($con,"select t2.RFID, t2.UserName, IFNULL(sum(t1.Duration),0) from ".
-							"QUserDetails t1 right outer join QUsers t2 ".
-							"on t1.UserID = t2.RFID and t2.RFID = 1 group by t2.RFID order by 3 desc ");
+$result = mysqli_query($con,"select t1.RFID, t1.UserName, IFNULL(sum(t2.Duration),0) from ".
+							"QUsers t1  left outer join QUserDetails t2 ".
+							"on t2.UserID = t1.RFID where t1.Active=1 group by t1.RFID order by 3 desc ");
 		
 while($row = mysqli_fetch_array($result))
 {
