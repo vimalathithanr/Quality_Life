@@ -29,7 +29,7 @@ $data = array();
 */
 $result = mysqli_query($con,"select t2.RFID, t2.UserName, IFNULL(sum(t1.Duration),0) from ".
 							"QUserDetails t1 right outer join QUsers t2 ".
-							"on t1.UserID = t2.RFID group by UserID order by 3 desc ");
+							"on t1.UserID = t2.RFID group by t2.RFID order by 3 desc ");
 		
 while($row = mysqli_fetch_array($result))
 {

@@ -524,7 +524,6 @@ function UpdateLinks(svgroup)
 	x = parseFloat(x) + parseFloat(offx);
 	y = parseFloat(y) + parseFloat(offy);
 	
-	
 	for(i=0;i<relations.length;i++)
 	{
 		flag = 0;

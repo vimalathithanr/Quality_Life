@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="fill_parent"
+    android:layout_height="fill_parent"
+    android:orientation="vertical">
+    <!-- Main ListView
+         Always give id value as list(@android:id/list)
+    -->
+    
+        <TextView
+      android:layout_width="wrap_content"
+      android:layout_height="wrap_content"
+      android:layout_margin="5dp"
+      android:text="Date          Start Time  End Time    Users"
+      android:textColor="#000000"
+      android:textSize="20sp" />
+    
+    <ListView
+        android:id="@android:id/list"
+        android:layout_width="fill_parent"
+        android:background="#00a2ff"
+        android:layout_height="wrap_content"/>
+ 
+</LinearLayout>
